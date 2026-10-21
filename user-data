@@ -1,18 +1,60 @@
+
 #cloud-config
 
-# Atualiza a lista de pacotes antes das instalações
+# Atualiza a lista de pacotes
+package_update: true
 
+# Cria o usuario para acessar a VM
+users:
+  - default
+  - name: meu-usuario
+    gecos: Usuario do laboratorio DevOps
+    groups: [sudo]
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+    ssh_authorized_keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFLfvazykBLdtTKOzvihkI9UWVR0EYnLjVDcPzL3R1Dl andre-cloud-init"
 
-# Cria um usuário administrador
+# Instala o Docker e o Nginx
+packages:
+  - docker.io
+  - nginx
 
+# Cria a pagina que sera exibida pelo Nginx
+write_files:
+  - path: /var/www/html/index.html
+    owner: root:root
+    permissions: '0644'
+    content: |
+      <!DOCTYPE html>
+      <html lang="pt-br">
+      <head>
+        <meta charset="UTF-8">
+        <title>Laboratorio Cloud-Init</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f1f3f5;
+            margin-top: 100px;
+          }
+          h1 { color: #245a8d; }
+        </style>
+      </head>
+      <body>
+        <h1>Cloud-Init funcionando!</h1>
+        <p>Laboratorio DevOps - Turma 5</p>
+        <p>Andre Chagas</p>
+        <p>Nginx configurado automaticamente na VM.</p>
+      </body>
+      </html>
 
-# Instala os softwares declarativamente
+# Habilita os servicos e configura o grupo docker
+runcmd:
+  - [systemctl, enable, --now, nginx]
+  - [systemctl, enable, --now, docker]
+  - [usermod, -aG, docker, meu-usuario]
 
-
-# Cria uma página personalizada
-
-
-# Executa comandos após as etapas de configuração
-
-
-# Mensagem final registrada nos logs
+# Mensagem exibida ao terminar
+final_message: "Cloud-Init finalizado. Docker e Nginx configurados."
